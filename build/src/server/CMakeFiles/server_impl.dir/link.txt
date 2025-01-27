@@ -1,2 +1,0 @@
-/Library/Developer/CommandLineTools/usr/bin/ar qc libserver_impl.a CMakeFiles/server_impl.dir/server_impl.cpp.o
-/Library/Developer/CommandLineTools/usr/bin/ranlib libserver_impl.a
