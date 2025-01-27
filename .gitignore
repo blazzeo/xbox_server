@@ -1,4 +1,5 @@
 build/
 exec/
+.cache/
 ./makefile
 ./compile_flags.txt

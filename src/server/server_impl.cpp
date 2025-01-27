@@ -42,8 +42,8 @@ void Server::accept_users() {
         size_t len = read(client_socket, buffer(name_buffer));
         std::string client_name(name_buffer, len);
 
-        clients_pool.push_back(Client_info(clients_count++, client_name,
-                                           std::move(client_socket)));
+        clients_pool.emplace_back(clients_count++, client_name,
+                                  std::move(client_socket));
 
         std::cout << "Client " << client_name << " connected.\n";
     }

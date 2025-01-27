@@ -11,7 +11,9 @@ set(CMAKE_PREFIX_PATH "/opt/homebrew/Cellar/boost/1.86.0" CACHE PATH "Path to Bo
 
 find_package(Boost REQUIRED COMPONENTS iostreams)
 
+
 if(Boost_FOUND)
 	include_directories(${Boost_INCLUDE_DIRS})
 	add_subdirectory(src)
+	add_subdirectory(test)
 endif()
