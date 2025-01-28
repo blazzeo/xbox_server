@@ -1,5 +1,7 @@
 build/
-exec/
+# exec/
 .cache/
-./makefile
-./compile_flags.txt
+Testing/
+# tests/
+makefile
+compile_flags.txt

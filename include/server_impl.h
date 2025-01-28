@@ -3,7 +3,6 @@
 #include "connection.h"
 #include <atomic>
 #include <list>
-#include <memory>
 #include <thread>
 #include <utility>
 
@@ -12,17 +11,16 @@ using boost::asio::ip::tcp;
 struct Client_info {
     int id;
     std::string name;
-    std::unique_ptr<std::thread> client_thread;
-    std::unique_ptr<tcp::socket> socket;
+    std::thread client_connection;
+    tcp::socket socket;
 
     Client_info(int id, std::string name, tcp::socket &&client_socket)
-        : id(id), name(name),
-          socket(std::make_unique<tcp::socket>(std::move(client_socket))),
-          client_thread(std::make_unique<std::thread>()) {}
+        : id(id), name(name), socket(std::move(client_socket)),
+          client_connection() {}
 
     ~Client_info() {
-        if (client_thread and client_thread->joinable())
-            client_thread->join();
+        if (client_connection.joinable())
+            client_connection.join();
     }
 
     Client_info(const Client_info &other) = delete;
@@ -30,7 +28,7 @@ struct Client_info {
 
     Client_info(Client_info &&other) noexcept
         : id(other.id), name(std::move(other.name)),
-          client_thread(std::move(other.client_thread)),
+          client_connection(std::move(other.client_connection)),
           socket(std::move(other.socket)) {}
 
     Client_info &operator=(Client_info &&other) noexcept {
@@ -38,7 +36,7 @@ struct Client_info {
             // Handle the move
             id = other.id;
             name = std::move(other.name);
-            client_thread = std::move(other.client_thread);
+            client_connection = std::move(other.client_connection);
             socket = std::move(other.socket);
         }
         return *this;
@@ -63,14 +61,14 @@ class Server {
            tcp::resolver::results_type endpoints, short port)
         : io_context(io_context),
           acceptor_(io_context, tcp::endpoint(tcp::v4(), port)),
-          is_available(false), clients_pool({}) {
+          is_available(false) {
         clients_count = 0;
     }
 
     ~Server() {
         for (auto &client : clients_pool) {
-            if (client.client_thread->joinable())
-                client.client_thread->join();
+            if (client.client_connection.joinable())
+                client.client_connection.join();
         }
     }
 
