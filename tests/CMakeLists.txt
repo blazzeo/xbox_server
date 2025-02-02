@@ -13,6 +13,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 
 add_executable(my_test tests.cpp)
-target_link_libraries(my_test gtest gtest_main server_impl client_impl)
+target_link_libraries(my_test PRIVATE gtest gtest_main server_impl client_impl)
+set(CTEST_SOURCE_DIRECTORY build/tests/)
 
-add_test(NAME MyTest COMMAND ${CMAKE_BINARY_DIR}/my_test)
+add_test(NAME MyTest COMMAND my_test)
