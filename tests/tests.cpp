@@ -1,8 +1,8 @@
 #include "client_impl.h"
 #include "server_impl.h"
 #include "gtest/gtest.h"
-#include <boost/asio.hpp>
-#include <boost/asio/ip/detail/endpoint.hpp>
-#include <boost/asio/placeholders.hpp>
 
-TEST(TEST_CONNECT, connection) { EXPECT_EQ(100, 50 + 50); }
+TEST(test_for_tests, testing_tests) {
+    EXPECT_EQ(3, 1 + 2);
+    EXPECT_EQ(100, 50 + 50);
+}
