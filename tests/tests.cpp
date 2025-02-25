@@ -14,7 +14,7 @@ TEST(CONNECTION_TESTS, tcp_connection) {
     auto endpoint{resolver.resolve("127.0.0.1", "5001")};
 
     auto server{Server(io_context, 5001)};
-    auto client{TCP_Client("test", io_context, endpoint)};
+    auto client{TCP_Client("test", io_context, std::move(endpoint))};
 
     server.start();
     client.run();

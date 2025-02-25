@@ -16,20 +16,28 @@ auto TCP_Client::get_name() const -> std::string_view { return m_name; }
 /*    m_func = p_func;*/
 /*}*/
 
-auto TCP_Client::run() -> void {
-    is_active = true;
+auto TCP_Client::start() -> void {
+    try {
+        boost::asio::connect(m_host_socket, m_endpoints);
+        std::cout << "Connection succesfull\n";
+        is_active = true;
 
-    send(m_name + '0');
+        send(m_name + '0');
 
-    std::string ans;
-    read(ans);
+        std::string ans;
+        read(ans);
 
-    if (ans.starts_with("OK")) {
-        dbg("Server accepted name.");
-    } else {
-        dbg("Server didn't accept name.");
+        if (ans.starts_with("OK")) {
+            dbg("Server accepted name.");
+        } else {
+            dbg("Server didn't accept name.");
+        }
+    } catch (std::exception &e) {
+        std::cerr << "Connection failed: " << e.what() << std::endl;
     }
+}
 
+auto TCP_Client::run() -> void {
     auto msg_id{0u};
     for (;;) {
         if (!m_host_socket.is_open()) {
@@ -59,11 +67,9 @@ void TCP_Client::send(std::string_view msg) {
         return;
 
     try {
-        if (m_host_socket.is_open()) {
-            dbg("sending");
+        if (m_host_socket.is_open())
             write(m_host_socket, buffer(msg));
-            dbg("sent");
-        }
+
     } catch (const std::exception &e) {
         std::cerr << "Error: " << e.what() << std::endl;
         m_host_socket.close();
@@ -76,11 +82,9 @@ void TCP_Client::read(std::string &dest) {
     dest.clear();
 
     try {
-        if (m_host_socket.is_open()) {
-            dbg("reading...");
+        if (m_host_socket.is_open())
             read_until(m_host_socket, dynamic_buffer(dest), '0');
-            dbg("received " + dest);
-        }
+
     } catch (const std::exception &e) {
         std::cerr << "Error: " << e.what() << std::endl;
         m_host_socket.close();

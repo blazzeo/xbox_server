@@ -2,6 +2,7 @@
 #include "boost/asio.hpp"
 #include "connection.h"
 #include <atomic>
+#include <future>
 #include <list>
 #include <memory>
 #include <string>
@@ -41,6 +42,7 @@ class Server {
     std::atomic<bool> is_available;
     tcp::acceptor m_acceptor;
     boost::asio::io_context &io_context;
+    std::future<void> accept_future;
 
   public:
     //	io_context, port
@@ -49,6 +51,8 @@ class Server {
           m_acceptor(io_context, tcp::endpoint(tcp::v4(), port)),
           is_available(false) {
         clients_count = 0;
+        accept_future =
+            std::async(std::launch::async, [this]() { accept_users(); });
     }
 
     ~Server() {

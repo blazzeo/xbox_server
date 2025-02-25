@@ -2,7 +2,6 @@
 #include <boost/asio/connect.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
-#include <iostream>
 #include <string>
 
 using boost::asio::ip::tcp;
@@ -13,17 +12,12 @@ class TCP_Client {
     const std::string m_name{"default"};
     bool is_active{false};
     tcp::socket m_host_socket;
+	tcp::resolver::results_type m_endpoints;
 
   public:
     TCP_Client(const std::string p_name, boost::asio::io_context &io_context,
-               const tcp::resolver::results_type &endpoints)
-        : m_name(p_name), m_host_socket(io_context) {
-        try {
-            boost::asio::connect(m_host_socket, endpoints);
-            std::cout << "Connection succesfull\n";
-        } catch (std::exception &e) {
-            std::cerr << "Connection failed: " << e.what() << std::endl;
-        }
+               tcp::resolver::results_type &&endpoints)
+        : m_name(p_name), m_host_socket(io_context), m_endpoints(endpoints) {
     }
 
     ~TCP_Client() = default;
@@ -31,6 +25,7 @@ class TCP_Client {
     //	Methods
     auto run() -> void;
     auto stop() -> void;
+	auto start() -> void;
     auto get_name() const -> std::string_view;
 	auto send(std::string_view) -> void;
 	auto read(std::string &dest) -> void;
