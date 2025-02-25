@@ -1,7 +1,14 @@
 #include "server_impl.h"
+#include "dbg.h"
+#include <boost/asio/buffer.hpp>
+#include <boost/asio/read_until.hpp>
+#include <boost/asio/registered_buffer.hpp>
+#include <boost/asio/write.hpp>
 #include <iostream>
+#include <unistd.h>
 
-using boost::asio::read, boost::asio::buffer, boost::asio::write;
+using boost::asio::read_until, boost::asio::dynamic_buffer, boost::asio::buffer,
+    boost::asio::write;
 
 void Server::broadcast_echo(std::string_view message) {
     for (auto &client : clients_pool)
@@ -28,23 +35,55 @@ void Server::start() { is_available.store(true); }
 void Server::stop() { is_available.store(false); }
 
 void Server::accept_users() {
-    while (true) {
-        tcp::socket client_socket(io_context);
-        acceptor_.accept(client_socket);
+    while (is_available) {
+        tcp::socket cs(io_context);
+        m_acceptor.accept(cs);
 
-        if (not is_available.load()) {
-            write(client_socket, buffer("not_available"));
-            std::cout << "Connection failed: server not available\n";
-            continue;
+        std::cout << "connection attempt...\n";
+
+        //	Client's name
+        std::string cn{};
+        auto len = read_until(cs, dynamic_buffer(cn), '0');
+
+        if (len == 0) {
+            std::cerr << "Error: Client disconnected before sending name\n";
+            return;
         }
 
-        char name_buffer[128];
-        size_t len = read(client_socket, buffer(name_buffer));
-        std::string client_name(name_buffer, len);
+        std::string client_name(cn.data(), len);
+        dbg("Received name: " + client_name);
 
-        clients_pool.emplace_back(clients_count++, client_name,
-                                  std::move(client_socket));
+        cn.erase(std::find(cn.begin(), cn.end(), '0'), cn.end());
+        /*clients_pool.emplace_back(++clients_count, client_name, cs);*/
 
-        std::cout << "Client " << client_name << " connected.\n";
+        if (cs.is_open()) {
+            dbg("sending...");
+            write(cs, buffer("OK0"));
+            dbg("sent");
+        }
+
+        std::cout << "Client ID: " << clients_count << ", name: " << client_name
+                  << " connected.\n";
+
+        for (;;) {
+            std::string msg{};
+            try {
+                read_until(cs, dynamic_buffer(msg), '0');
+            } catch (const boost::system::system_error &e) {
+                if (e.code() == boost::asio::error::eof) {
+                    std::cout << "Client disconnected.\n";
+                } else {
+                    std::cerr << "Error: " << e.what() << std::endl;
+                }
+                break; // Выход из цикла
+            }
+
+            if (msg.empty()) {
+                std::cout << "Empty message, closing connection.\n";
+                break;
+            }
+
+            std::cout << "Received: " << msg << std::endl;
+        }
     }
 }

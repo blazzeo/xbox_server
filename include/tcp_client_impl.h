@@ -2,20 +2,17 @@
 #include <boost/asio/connect.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
-#include <functional>
 #include <iostream>
 #include <string>
 
 using boost::asio::ip::tcp;
 
 // clang-format off
-template <class... Types>
 class TCP_Client {
   private:
     const std::string m_name{"default"};
     bool is_active{false};
     tcp::socket m_host_socket;
-    std::function<void(Types... args)> m_func{ [](){ return -1; } };
 
   public:
     TCP_Client(const std::string p_name, boost::asio::io_context &io_context,
@@ -32,9 +29,10 @@ class TCP_Client {
     ~TCP_Client() = default;
 
     //	Methods
-    void run();
-    void stop();
-	void bind(std::function<void(Types...)>);
-    std::string_view get_name() const;
+    auto run() -> void;
+    auto stop() -> void;
+    auto get_name() const -> std::string_view;
+	auto send(std::string_view) -> void;
+	auto read(std::string &dest) -> void;
 };
 // clang-format on

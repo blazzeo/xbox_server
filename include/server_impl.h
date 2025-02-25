@@ -17,7 +17,7 @@ struct Client_info {
     tcp::socket socket;
 
     Client_info(int id, std::string name, tcp::socket &&client_socket)
-        : id(id), name(name), socket(std::move(client_socket)),
+        : id(id), name(std::move(name)), socket(std::move(client_socket)),
           client_connection() {}
 
     ~Client_info() {
@@ -28,22 +28,6 @@ struct Client_info {
     Client_info(const Client_info &other) = delete;
     Client_info &operator=(const Client_info &other) = delete;
 
-    /*Client_info(Client_info &&other) noexcept*/
-    /*    : id(other.id), name(std::move(other.name)),*/
-    /*      client_connection(std::move(other.client_connection)),*/
-    /*      socket(std::move(other.socket)) {}*/
-    /**/
-    /*Client_info &operator=(Client_info &&other) noexcept {*/
-    /*    if (this != &other) {*/
-    /*        // Handle the move*/
-    /*        id = other.id;*/
-    /*        name = std::move(other.name);*/
-    /*        client_connection = std::move(other.client_connection);*/
-    /*        socket = std::move(other.socket);*/
-    /*    }*/
-    /*    return *this;*/
-    /*}*/
-
     bool operator==(const Client_info &other) {
         return this->id == other.id and this->name == other.name;
     }
@@ -52,16 +36,17 @@ struct Client_info {
 };
 
 class Server {
-    static size_t clients_count;
+    size_t clients_count;
     std::list<Client_info> clients_pool;
     std::atomic<bool> is_available;
-    tcp::acceptor acceptor_;
+    tcp::acceptor m_acceptor;
     boost::asio::io_context &io_context;
 
   public:
+    //	io_context, port
     Server(boost::asio::io_context &io_context, short port)
         : io_context(io_context),
-          acceptor_(io_context, tcp::endpoint(tcp::v4(), port)),
+          m_acceptor(io_context, tcp::endpoint(tcp::v4(), port)),
           is_available(false) {
         clients_count = 0;
     }
