@@ -10,22 +10,16 @@
 using boost::asio::read_until, boost::asio::dynamic_buffer, boost::asio::buffer,
     boost::asio::write;
 
-void Server::broadcast_echo(std::string_view message) {
+void Server::broadcast_echo(std::string message) {
     for (auto &client : clients_pool)
         write(client.socket, buffer(message));
-}
-
-//	Disconnect by client struct
-void Server::disconnect_user(Client_info &client) {
-    auto it = std::find(clients_pool.begin(), clients_pool.end(), client);
-
-    if (it != clients_pool.end())
-        clients_pool.erase(it);
 }
 
 //	Disconnect by client id
 void Server::disconnect_user(int id) {
     auto it = std::find(clients_pool.begin(), clients_pool.end(), id);
+
+    dbg(*it);
 
     if (it != clients_pool.end())
         clients_pool.erase(it);
@@ -44,19 +38,17 @@ void Server::accept_users() {
 
             //	Client's name
             std::string client_name{};
-            auto len = read_until(cs, dynamic_buffer(client_name), '0');
+            auto len = read_until(cs, dynamic_buffer(client_name), '\n');
 
-            if (len == 0) {
-                std::cerr << "Error: Client disconnected before sending name\n";
-                return;
-            }
+            if (len == 0)
+                throw "Error: Client disconnected before sending name\n";
 
             client_name.erase(
-                std::find(client_name.begin(), client_name.end(), '0'),
+                std::find(client_name.begin(), client_name.end(), '\n'),
                 client_name.end());
 
             if (cs.is_open())
-                write(cs, buffer("OK0"));
+                write(cs, buffer("OK\n"));
 
             clients_pool.emplace_back(++clients_count, client_name,
                                       std::move(cs));

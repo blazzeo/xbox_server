@@ -7,7 +7,7 @@
 #include <boost/asio/ip/detail/endpoint.hpp>
 #include <boost/asio/placeholders.hpp>
 
-TEST(CONNECTION_TESTS, tcp_connection) {
+TEST(CONNECTION_TESTS, name_accept) {
     boost::asio::io_context io_context;
 
     boost::asio::ip::tcp::resolver resolver(io_context);
