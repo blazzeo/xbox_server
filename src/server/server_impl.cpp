@@ -65,3 +65,20 @@ void Server::accept_users() {
         }
     }
 }
+
+void Server::accept_udp() {
+    while (is_available) {
+        try {
+            char recv_msg[128];
+            boost::asio::ip::udp::endpoint sender_endpoint;
+            udp_socket.receive_from(boost::asio::buffer(recv_msg),
+                                    sender_endpoint);
+
+            udp_socket.send_to(
+                boost::asio::buffer(std::format("ECHO_{}", recv_msg)),
+                sender_endpoint);
+        } catch (std::exception &e) {
+            std::cerr << "Error: " << e.what() << std::endl;
+        }
+    }
+}

@@ -8,7 +8,6 @@
 #include <exception>
 #include <string_view>
 #include <sys/socket.h>
-#include <thread>
 #include <unistd.h>
 
 auto TCP_Client::start() -> void {

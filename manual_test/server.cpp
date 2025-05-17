@@ -12,8 +12,7 @@ int main(int argc, char *argv[]) {
 
     while (true) {
         auto choice{0};
-        std::cout << "1 - send\t2 - broadcast\t3 - ban\t0 - close\n";
-        std::cout << "Operation: ";
+        std::cout << "1 - send\t2 - broadcast\t3 - ban\t0 - close\nOperation: ";
         std::cin >> choice;
 
         switch ((operation)choice) {

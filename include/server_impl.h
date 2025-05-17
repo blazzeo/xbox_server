@@ -3,28 +3,30 @@
 #include <atomic>
 #include <cstdio>
 #include <dbg.h>
-#include <functional>
 #include <list>
 #include <memory>
 #include <string>
 #include <thread>
 
 class Server {
-    size_t clients_count;
+    size_t clients_count{0};
     std::list<TCP_connection> clients_pool;
-    std::atomic<bool> is_available;
+    std::atomic<bool> is_available{false};
     tcp::acceptor m_acceptor;
     boost::asio::io_context &io_context;
     std::thread accept_thread;
+    std::thread udp_thread;
+    boost::asio::ip::udp::socket udp_socket;
 
   public:
     //	io_context, port
     Server(boost::asio::io_context &io_context, short port)
         : io_context(io_context),
           m_acceptor(io_context, tcp::endpoint(tcp::v4(), port)),
-          is_available(false) {
-        clients_count = 0;
+          udp_socket(io_context) {
+        udp_socket.open(boost::asio::ip::udp::v4());
         accept_thread = std::thread([this]() { accept_users(); });
+        udp_thread = std::thread([this]() { accept_udp(); });
     }
 
     ~Server() {
@@ -48,5 +50,6 @@ class Server {
     void disconnect_user(int);
     //	Receive connections from clients
     void accept_users();
-    std::function<void()> tcp_client_loop(tcp::socket);
+    //	Receive udp messages
+    void accept_udp();
 };
